@@ -21,7 +21,7 @@ fix_signs <- function(B){
 # varnum_vec is a vector of non-zero components for each coordinate
 #or a number corresponding to same number for every coordinate
 # output:
-# B is the ICS loeading matrix
+# B is the ICS loading matrix
 
 SICS = function(S1, S2, K = ncol(S1), varnum_vec = NULL, maximiter = 500){
   p = ncol(S1)
@@ -69,7 +69,7 @@ SICS = function(S1, S2, K = ncol(S1), varnum_vec = NULL, maximiter = 500){
     }
   }
   
-  return(list(A=A,B=B, iters=iterat))
+  return(list(B=B, A=A, iters=iterat))
 }
 
 ###
@@ -78,15 +78,23 @@ SICS = function(S1, S2, K = ncol(S1), varnum_vec = NULL, maximiter = 500){
 
 library(ICS)
 
-A <- solve(matrix(c(1, 0, -2, 0,
-                    2, 0, 0, -2,
-                    0, 0, 1, 1,
-                    0, -1, 0, -4), 4, 4, byrow = TRUE))
-n <- 100000
-X = cbind(rpois(n, 1)-1, (rpois(n, 2)-2)/sqrt(2), (runif(n)-0.5)*sqrt(12), rnorm(n)) %*% t(A)
+# Unmixing matrix to be estimated
+A_inv = matrix(c(1, 0, -2, 0,
+                 2, 0, 0, -2,
+                 0, -1, 0, -4,
+                 0, 0, 1, 1), 4, 4, byrow = TRUE)
 
+# Generating the data
+A <- solve(A_inv)
+n <- 100000
+X = cbind(rpois(n, 1)-1, (rpois(n, 2)-2)/sqrt(2), rnorm(n), (runif(n)-0.5)*sqrt(12)) %*% t(A)
+
+# Scatter matrices: Covariance matrix and the scatter matrix based on the 4th moments
 S1 = cov(X)
 S2 = cov4(X)
 
+# Estimating four independent components with three non-zero coefficients
 model_SICS = SICS(S1, S2, 4, 3)
-t(sic$B)
+
+t(model_SICS$B) # Estimate
+A_inv # Real value
