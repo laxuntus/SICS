@@ -35,11 +35,13 @@ SICS = function(S1, S2, K = ncol(S1), varnum_vec = NULL, maximiter = 500){
   
   S1_inv = solve(S1)
   eig_S1 = eigen(S1, symmetric = TRUE)
-  S1_sqrt = eig_S1$vectors %*% diag(sqrt(eig_S1$values)) %*% t(eig_S1$vectors)
+  eig_S1_values = ifelse(eig_S1$values<0, 0, eig_S1$values)
+  S1_sqrt = eig_S1$vectors %*% diag(sqrt(eig_S1_values)) %*% t(eig_S1$vectors)
   S1_invsqrt <- solve(S1_sqrt)
   
   eig_S2 = eigen(S2, symmetric = TRUE)
-  R = eig_S2$vectors %*% diag(sqrt(eig_S2$values)) %*% t(eig_S2$vectors)
+  eig_S2_values = ifelse(eig_S2$values<0, 0, eig_S2$values)
+  R = eig_S2$vectors %*% diag(sqrt(eig_S2_values)) %*% t(eig_S2$vectors)
   
   A <- eigen(S1_invsqrt %*% S2 %*% S1_invsqrt)$vectors[, 1:K, drop = FALSE]
   B <- S1_invsqrt %*% A
@@ -98,3 +100,4 @@ model_SICS = SICS(S1, S2, 4, 3)
 
 t(model_SICS$B) # Estimate
 A_inv # Real value
+
